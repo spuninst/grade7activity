@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grade 7 Grad Celebration Survey</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+
+<!-- TOP FRAME: landing view OR survey steps -->
+<div id="frame-top">
+
+  <!-- ── LANDING VIEW (default) ── -->
+  <div id="landing-view">
+    <div class="event-banner">
+      <h1>🎓 Grade 7 Grad Celebration</h1>
+      <p>Help us choose the perfect activities for your child!</p>
+    </div>
+
+    <div class="stats-section">
+      <h3 class="section-title">📊 Current Survey Standings</h3>
+
+      <div class="stats-cards">
+        <div class="stat-card">
+          <div class="stat-num" id="stat-total">—</div>
+          <div class="stat-label">Responses</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-budget">—</div>
+          <div class="stat-label">Avg Budget / Head</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-potluck">—</div>
+          <div class="stat-label">Want Potluck</div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card">
+          <h4>Activity Category Votes</h4>
+          <canvas id="chart-cat"></canvas>
+        </div>
+        <div class="chart-card chart-wide">
+          <h4>Top Activity Preferences</h4>
+          <canvas id="chart-activities"></canvas>
+        </div>
+      </div>
+
+      <div id="no-data-msg" style="display:none" class="no-data">No survey responses yet — be the first! 🎉</div>
+    </div>
+
+    <div class="landing-cta">
+      <button class="btn btn-primary landing-start-btn" onclick="startSurvey()">📝 Take the Survey →</button>
+      <a href="/logout" class="logout-link">Sign out</a>
+    </div>
+  </div>
+
+  <!-- ── SURVEY VIEW (shown after clicking Take the Survey) ── -->
+  <div id="survey-view" style="display:none; width:100%">
+    <div class="event-banner">
+      <h1>🎓 Grade 7 Grad Celebration</h1>
+      <p>Help us plan the perfect event for your child!</p>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="progress-text" id="progress-text">Step 1 of ?</div>
+    </div>
+    <div id="step-container"></div>
+  </div>
+
+</div>
+
+<!-- BOTTOM FRAME: nav (survey only) + activity guide (always) -->
+<div id="frame-bottom">
+
+  <div class="nav-row" id="nav-row" style="display:none">
+    <button class="btn btn-secondary" id="btn-back" onclick="prevStep()" style="display:none">← Back</button>
+    <div class="step-info" id="step-info"></div>
+    <button class="btn btn-primary" id="btn-next" onclick="nextStep()">Next →</button>
+  </div>
+
+  <div class="guide-panel">
+    <div class="guide-tabs">
+      <button class="guide-tab active" data-cat="Land">🌳 Land Activities</button>
+      <button class="guide-tab" data-cat="Sea">⛵ Sea Activities</button>
+      <button class="guide-tab" data-cat="Beach">🏖️ Beach Activities</button>
+    </div>
+    <div class="guide-cat-desc" id="guide-cat-desc"></div>
+    <div class="guide-map-wrap">
+      <div id="guide-map"></div>
+      <div class="venue-sidebar" id="venue-sidebar"></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/js/guide.js"></script>
+<script src="/js/survey.js"></script>
+</body>
+</html>

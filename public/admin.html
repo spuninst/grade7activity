@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Console — Grad Survey</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary: #2563eb; --primary-light: #dbeafe;
+  --bg: #f1f5f9; --white: #fff; --border: #e2e8f0;
+  --text: #1e293b; --muted: #64748b;
+  --success: #16a34a; --danger: #dc2626;
+  --radius: 10px;
+}
+body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* ── Login ── */
+#login-screen {
+  display:flex; align-items:center; justify-content:center; min-height:100vh;
+}
+.login-card {
+  background:var(--white); border-radius:14px; padding:36px 32px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.1); width:340px; text-align:center;
+}
+.login-card h1 { font-size:20px; margin-bottom:6px; }
+.login-card p { color:var(--muted); font-size:13px; margin-bottom:20px; }
+
+/* ── Layout ── */
+#app { display:none; }
+.topbar {
+  background:var(--primary); color:#fff; padding:14px 28px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.topbar h1 { font-size:18px; font-weight:700; }
+.topbar span { font-size:13px; opacity:0.8; }
+
+.tabs {
+  background:var(--white); border-bottom:1px solid var(--border);
+  display:flex; padding:0 24px; gap:4px;
+}
+.tab-btn {
+  padding:13px 18px; border:none; background:none; cursor:pointer;
+  font-size:14px; font-weight:500; color:var(--muted);
+  border-bottom:2px solid transparent; margin-bottom:-1px;
+  transition:all 0.12s;
+}
+.tab-btn.active { color:var(--primary); border-bottom-color:var(--primary); }
+
+.content { padding:24px 28px; max-width:1100px; }
+
+/* ── Stats ── */
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:28px; }
+.stat-card {
+  background:var(--white); border-radius:var(--radius); padding:18px 20px;
+  border:1px solid var(--border);
+}
+.stat-card .label { font-size:12px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+.stat-card .value { font-size:28px; font-weight:700; color:var(--primary); margin-top:4px; }
+
+.section-title { font-size:16px; font-weight:600; margin-bottom:12px; margin-top:24px; }
+
+/* ── Table ── */
+table { width:100%; border-collapse:collapse; background:var(--white); border-radius:var(--radius); overflow:hidden; border:1px solid var(--border); }
+th { background:#f8fafc; font-size:12px; text-transform:uppercase; letter-spacing:0.05em; padding:11px 14px; text-align:left; color:var(--muted); font-weight:600; }
+td { padding:11px 14px; font-size:13.5px; border-top:1px solid var(--border); }
+tr:hover td { background:#fafafa; }
+.badge {
+  display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600;
+}
+.badge-land { background:#dcfce7; color:#16a34a; }
+.badge-sea  { background:#dbeafe; color:#1d4ed8; }
+.badge-beach{ background:#fef9c3; color:#854d0e; }
+.badge-yes  { background:#dcfce7; color:#16a34a; }
+.badge-no   { background:#fee2e2; color:#dc2626; }
+
+/* ── Forms ── */
+.form-card {
+  background:var(--white); border-radius:var(--radius); padding:22px 24px;
+  border:1px solid var(--border); margin-bottom:16px;
+}
+.form-row { display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin-bottom:12px; }
+.form-row > div { flex:1; min-width:160px; }
+label { display:block; font-size:13px; font-weight:500; margin-bottom:5px; }
+input[type=text], input[type=number], select, textarea {
+  width:100%; padding:9px 12px; border:1.5px solid var(--border);
+  border-radius:8px; font-size:14px; color:var(--text); background:#f8fafc;
+  outline:none; transition:border-color 0.15s;
+}
+input:focus, select:focus, textarea:focus { border-color:var(--primary); background:var(--white); }
+.btn {
+  padding:9px 20px; border-radius:8px; font-size:14px; font-weight:600;
+  cursor:pointer; border:none; transition:all 0.13s; white-space:nowrap;
+}
+.btn-primary { background:var(--primary); color:#fff; }
+.btn-primary:hover { background:#1d4ed8; }
+.btn-danger  { background:#fee2e2; color:var(--danger); }
+.btn-danger:hover { background:#fecaca; }
+.btn-sm { padding:5px 12px; font-size:12px; }
+.btn-success { background:#dcfce7; color:var(--success); }
+
+/* ── Question list ── */
+.q-list { display:flex; flex-direction:column; gap:10px; }
+.q-item {
+  background:var(--white); border:1px solid var(--border); border-radius:var(--radius);
+  padding:14px 16px; display:flex; align-items:flex-start; gap:12px;
+}
+.q-item .q-body { flex:1; }
+.q-item .q-text { font-size:14px; font-weight:500; }
+.q-item .q-meta { font-size:12px; color:var(--muted); margin-top:3px; }
+.q-actions { display:flex; gap:6px; flex-shrink:0; }
+
+/* ── Charts ── */
+.bar-row { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+.bar-label { font-size:13px; min-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bar-track { flex:1; background:var(--border); border-radius:4px; height:12px; }
+.bar-fill  { height:100%; background:var(--primary); border-radius:4px; transition:width 0.4s; }
+.bar-count { font-size:12px; color:var(--muted); min-width:30px; text-align:right; }
+
+/* ── Misc ── */
+.empty { text-align:center; padding:40px; color:var(--muted); font-size:14px; }
+.alert-success { background:#dcfce7; color:var(--success); padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:12px; }
+.alert-error   { background:#fee2e2; color:var(--danger); padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:12px; }
+
+#options-wrap { display:none; }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="login-screen">
+  <div class="login-card">
+    <h1>🔐 Admin Console</h1>
+    <p>Grade 7 Grad Celebration Survey</p>
+    <div style="margin-bottom:12px">
+      <label>Admin Password</label>
+      <input type="password" id="pwd-input" placeholder="Enter password..." onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="login()">Sign In</button>
+    <div id="login-err" style="color:#dc2626;font-size:13px;margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <div class="topbar">
+    <h1>🎓 Grad Survey — Admin Console</h1>
+    <span id="admin-info">Logged in</span>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('dashboard')">📊 Dashboard</button>
+    <button class="tab-btn" onclick="showTab('responses')">📋 Responses</button>
+    <button class="tab-btn" onclick="showTab('questions')">❓ Manage Questions</button>
+  </div>
+  <div class="content">
+    <div id="tab-dashboard"></div>
+    <div id="tab-responses" style="display:none"></div>
+    <div id="tab-questions" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+let adminPwd = '';
+let allResponses = [];
+let allQuestions = [];
+
+// ── Auth ──────────────────────────────────────────────────────────
+async function login() {
+  const pwd = document.getElementById('pwd-input').value;
+  const res = await fetch('/api/admin/responses', { headers: { 'x-admin-password': pwd } });
+  if (res.status === 401) {
+    document.getElementById('login-err').textContent = 'Incorrect password.';
+    return;
+  }
+  adminPwd = pwd;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadAll();
+}
+
+async function loadAll() {
+  const [rRes, qRes, sRes] = await Promise.all([
+    fetch('/api/admin/responses', { headers: { 'x-admin-password': adminPwd } }).then(r => r.json()),
+    fetch('/api/questions').then(r => r.json()),
+    fetch('/api/admin/summary', { headers: { 'x-admin-password': adminPwd } }).then(r => r.json())
+  ]);
+  allResponses = rRes;
+  allQuestions = qRes;
+  renderDashboard(sRes);
+  renderResponses();
+  renderQuestions();
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────
+function showTab(name) {
+  ['dashboard','responses','questions'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['dashboard','responses','questions'][i] === name);
+  });
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────
+function renderDashboard(s) {
+  const el = document.getElementById('tab-dashboard');
+
+  // Category breakdown bars
+  const catTotal = s.total || 1;
+  const catBars = Object.entries(s.catCount || {}).map(([cat, count]) => `
+    <div class="bar-row">
+      <span class="bar-label">${cat}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round((count/catTotal)*100)}%"></div></div>
+      <span class="bar-count">${count}</span>
+    </div>`).join('');
+
+  // Activity votes
+  const acts = Object.entries(s.activityVotes || {}).sort((a,b) => b[1]-a[1]);
+  const maxVote = acts[0] ? acts[0][1] : 1;
+  const actBars = acts.map(([act, score]) => `
+    <div class="bar-row">
+      <span class="bar-label">${act}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round((score/maxVote)*100)}%"></div></div>
+      <span class="bar-count">${score}</span>
+    </div>`).join('') || '<div class="empty">No data yet</div>';
+
+  // Food votes
+  const foods = Object.entries(s.foodCount || {}).sort((a,b) => b[1]-a[1]);
+  const maxFood = foods[0] ? foods[0][1] : 1;
+  const foodBars = foods.map(([food, count]) => `
+    <div class="bar-row">
+      <span class="bar-label">${food}</span>
+      <div class="bar-track"><div class="bar-fill" style="background:#16a34a;width:${Math.round((count/maxFood)*100)}%"></div></div>
+      <span class="bar-count">${count}</span>
+    </div>`).join('') || '<div class="empty">No potluck data yet</div>';
+
+  el.innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="label">Total Responses</div><div class="value">${s.total || 0}</div></div>
+      <div class="stat-card"><div class="label">Total Attendees</div><div class="value">${s.totalAttendees || 0}</div></div>
+      <div class="stat-card"><div class="label">Avg Budget Min</div><div class="value">$${s.avgBudgetMin || 0}</div></div>
+      <div class="stat-card"><div class="label">Avg Budget Max</div><div class="value">$${s.avgBudgetMax || 0}</div></div>
+      <div class="stat-card"><div class="label">Potluck Yes</div><div class="value" style="color:var(--success)">${s.potluckYes || 0}</div></div>
+      <div class="stat-card"><div class="label">Potluck No</div><div class="value" style="color:var(--danger)">${s.potluckNo || 0}</div></div>
+    </div>
+
+    <div class="section-title">Category Preference</div>
+    <div class="form-card">${catBars || '<div class="empty">No data yet</div>'}</div>
+
+    <div class="section-title">Activity Rankings (Score = preference votes)</div>
+    <div class="form-card">${actBars}</div>
+
+    <div class="section-title">Potluck Food Contributions</div>
+    <div class="form-card">${foodBars}</div>`;
+}
+
+// ── Responses Table ───────────────────────────────────────────────
+function renderResponses() {
+  const el = document.getElementById('tab-responses');
+  if (!allResponses.length) {
+    el.innerHTML = '<div class="empty">No responses yet.</div>'; return;
+  }
+  const rows = allResponses.map(r => `
+    <tr>
+      <td><strong>${r.childName}</strong></td>
+      <td>${r.numAttending}</td>
+      <td><span class="badge badge-${r.category.toLowerCase()}">${r.category}</span></td>
+      <td>$${r.budgetMin}–$${r.budgetMax}</td>
+      <td><span class="badge ${r.potluck ? 'badge-yes' : 'badge-no'}">${r.potluck ? 'Yes' : 'No'}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${new Date(r.submittedAt).toLocaleDateString('en-CA', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</td>
+      <td>
+        <button class="btn btn-sm" onclick="showDetail('${r._id}')">View</button>
+      </td>
+    </tr>`).join('');
+
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:15px;font-weight:600">${allResponses.length} Response(s)</div>
+      <button class="btn btn-primary btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+    </div>
+    <table>
+      <thead><tr><th>Child Name</th><th>Attending</th><th>Category</th><th>Budget/Head</th><th>Potluck</th><th>Submitted</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div id="detail-panel" style="margin-top:20px"></div>`;
+}
+
+function showDetail(id) {
+  const r = allResponses.find(x => x._id === id);
+  if (!r) return;
+  const rankings = (r.activityRankings || []).sort((a,b) => a.rank - b.rank)
+    .map(a => `<li>${a.rank}. ${a.activity}</li>`).join('');
+  const foods = [...(r.potluckFood || []), r.potluckOther ? `Other: ${r.potluckOther}` : ''].filter(Boolean).join(', ') || '—';
+  document.getElementById('detail-panel').innerHTML = `
+    <div class="form-card">
+      <div style="font-size:15px;font-weight:600;margin-bottom:12px">📄 Detail — ${r.childName}</div>
+      <p><strong>Attending:</strong> ${r.numAttending} &nbsp;|&nbsp; <strong>Category:</strong> ${r.category} &nbsp;|&nbsp; <strong>Budget:</strong> $${r.budgetMin}–$${r.budgetMax}</p>
+      <p style="margin-top:8px"><strong>Activity Rankings:</strong></p>
+      <ol style="margin:6px 0 8px 20px;font-size:13px">${rankings}</ol>
+      <p><strong>Potluck:</strong> ${r.potluck ? 'Yes' : 'No'} &nbsp; ${r.potluck ? `<strong>Food:</strong> ${foods}` : ''}</p>
+    </div>`;
+}
+
+function exportCSV() {
+  const headers = ['Child Name','Attending','Category','Budget Min','Budget Max','Potluck','Food','Submitted'];
+  const rows = allResponses.map(r => [
+    r.childName, r.numAttending, r.category, r.budgetMin, r.budgetMax,
+    r.potluck ? 'Yes' : 'No',
+    [...(r.potluckFood||[]), r.potluckOther||''].filter(Boolean).join('; '),
+    new Date(r.submittedAt).toISOString()
+  ]);
+  const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'grad_survey_responses.csv';
+  a.click();
+}
+
+// ── Question Manager ──────────────────────────────────────────────
+function renderQuestions() {
+  const el = document.getElementById('tab-questions');
+  const qList = allQuestions.length
+    ? allQuestions.map(q => `
+        <div class="q-item">
+          <div class="q-body">
+            <div class="q-text">${q.text}</div>
+            <div class="q-meta">Type: <strong>${q.type}</strong>${q.options?.length ? ` · Options: ${q.options.join(', ')}` : ''}${q.sliderMin !== undefined ? ` · Range: ${q.sliderMin}–${q.sliderMax}` : ''} · Order: ${q.order}</div>
+          </div>
+          <div class="q-actions">
+            <button class="btn btn-danger btn-sm" onclick="deleteQuestion('${q._id}')">🗑 Remove</button>
+          </div>
+        </div>`).join('')
+    : '<div class="empty">No custom questions yet. Add one below!</div>';
+
+  el.innerHTML = `
+    <div class="section-title">Active Custom Questions</div>
+    <div class="q-list">${qList}</div>
+
+    <div class="section-title" style="margin-top:28px">➕ Add New Question</div>
+    <div class="form-card">
+      <div id="q-alert"></div>
+      <div class="form-row">
+        <div style="flex:3">
+          <label>Question Text</label>
+          <input type="text" id="q-text" placeholder="e.g. Do you have any dietary restrictions?">
+        </div>
+        <div>
+          <label>Type</label>
+          <select id="q-type" onchange="toggleOptions()">
+            <option value="text">Text (open answer)</option>
+            <option value="yesno">Yes / No</option>
+            <option value="multiple_choice">Multiple Choice</option>
+            <option value="slider">Slider</option>
+            <option value="ranking">Ranking</option>
+          </select>
+        </div>
+        <div style="max-width:80px">
+          <label>Order</label>
+          <input type="number" id="q-order" value="99" min="1" max="999">
+        </div>
+      </div>
+
+      <div id="options-wrap">
+        <label>Options (one per line, for Multiple Choice / Ranking)</label>
+        <textarea id="q-options" rows="4" placeholder="Option A&#10;Option B&#10;Option C"></textarea>
+      </div>
+
+      <div id="slider-wrap" style="display:none">
+        <div class="form-row">
+          <div><label>Slider Min</label><input type="number" id="q-slider-min" value="0"></div>
+          <div><label>Slider Max</label><input type="number" id="q-slider-max" value="100"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px">
+        <button class="btn btn-primary" onclick="addQuestion()">➕ Add Question</button>
+      </div>
+    </div>`;
+}
+
+function toggleOptions() {
+  const type = document.getElementById('q-type').value;
+  document.getElementById('options-wrap').style.display = ['multiple_choice','ranking'].includes(type) ? 'block' : 'none';
+  document.getElementById('slider-wrap').style.display = type === 'slider' ? 'block' : 'none';
+}
+
+async function addQuestion() {
+  const text = document.getElementById('q-text').value.trim();
+  const type = document.getElementById('q-type').value;
+  const order = parseInt(document.getElementById('q-order').value) || 99;
+  if (!text) { showAlert('q-alert', 'Please enter question text.', 'error'); return; }
+
+  const body = { text, type, order };
+  if (['multiple_choice','ranking'].includes(type)) {
+    const opts = document.getElementById('q-options').value.trim().split('\n').map(s => s.trim()).filter(Boolean);
+    if (!opts.length) { showAlert('q-alert', 'Please add at least one option.', 'error'); return; }
+    body.options = opts;
+  }
+  if (type === 'slider') {
+    body.sliderMin = parseInt(document.getElementById('q-slider-min').value) || 0;
+    body.sliderMax = parseInt(document.getElementById('q-slider-max').value) || 100;
+  }
+
+  const res = await fetch('/api/admin/questions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPwd },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (data._id) {
+    allQuestions.push(data);
+    renderQuestions();
+    showAlert('q-alert', 'Question added successfully!', 'success');
+  } else {
+    showAlert('q-alert', data.error || 'Failed to add.', 'error');
+  }
+}
+
+async function deleteQuestion(id) {
+  if (!confirm('Remove this question from the survey?')) return;
+  await fetch('/api/admin/questions/' + id, {
+    method: 'DELETE',
+    headers: { 'x-admin-password': adminPwd }
+  });
+  allQuestions = allQuestions.filter(q => q._id !== id);
+  renderQuestions();
+}
+
+function showAlert(id, msg, type) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = type === 'success' ? 'alert-success' : 'alert-error';
+  el.textContent = msg;
+  setTimeout(() => { el.textContent = ''; el.className = ''; }, 3000);
+}
+</script>
+</body>
+</html>
