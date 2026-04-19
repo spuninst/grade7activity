@@ -17,19 +17,15 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--bg);
   color: var(--text);
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  justify-content: center;
+  overflow-y: auto;
 }
 
 /* ── TWO FRAMES ── */
 #frame-top {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 24px 16px 12px;
+  padding: 32px 16px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -42,8 +38,6 @@ body {
   border-radius: 12px 12px 0 0;
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
-  max-height: 58vh;
 }
 
 .nav-row {
@@ -53,16 +47,12 @@ body {
   gap: 12px;
   padding: 10px 16px;
   border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
   background: var(--white);
 }
 
 .guide-panel {
-  flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 /* ── CARD ── */
@@ -469,14 +459,13 @@ textarea:focus { border-color: var(--primary); background: var(--white); }
 /* ── MAP + SIDEBAR LAYOUT ── */
 .guide-map-wrap {
   display: flex;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
+  height: 480px;
 }
 
 #guide-map {
   flex: 0 0 60%;
   min-width: 0;
+  height: 100%;
 }
 
 .map-placeholder {
@@ -497,6 +486,7 @@ textarea:focus { border-color: var(--primary); background: var(--white); }
 
 .venue-sidebar {
   flex: 0 0 40%;
+  height: 100%;
   overflow-y: auto;
   background: var(--white);
   border-left: 1px solid var(--border);
@@ -582,26 +572,27 @@ textarea:focus { border-color: var(--primary); background: var(--white); }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 700px) {
-  #frame-bottom { border-width: 6px; max-height: 62vh; }
+  #frame-bottom { border-width: 6px; }
 
-  .guide-map-wrap { flex-direction: column; overflow-y: auto; }
+  .guide-map-wrap { flex-direction: column; height: auto; }
 
   #guide-map {
     flex: 0 0 220px;
     width: 100%;
+    height: 220px;
   }
 
   .venue-sidebar {
     flex: 1;
     width: 100%;
+    height: auto;
     border-left: none;
     border-top: 1px solid var(--border);
-    overflow-y: auto;
+    overflow-y: visible;
   }
 }
 
 @media (max-width: 420px) {
-  #frame-bottom { max-height: 65vh; }
-  #guide-map { flex: 0 0 180px; }
+  #guide-map { flex: 0 0 180px; height: 180px; }
   .guide-tab { padding: 5px 10px; font-size: 12px; }
 }
