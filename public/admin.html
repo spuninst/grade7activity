@@ -163,7 +163,10 @@ input:focus, select:focus, textarea:focus { border-color:var(--primary); backgro
 <div id="app">
   <div class="topbar">
     <h1>🎓 Grad Survey — Admin Console</h1>
-    <span id="admin-info">Logged in</span>
+    <div style="display:flex;align-items:center;gap:16px">
+      <span id="admin-info">Logged in</span>
+      <a href="/logout" style="color:#fff;font-size:13px;opacity:0.85;text-decoration:none;border:1px solid rgba(255,255,255,0.4);border-radius:6px;padding:4px 12px">Sign out</a>
+    </div>
   </div>
   <div class="tabs">
     <button class="tab-btn active" onclick="showTab('dashboard')">📊 Dashboard</button>
