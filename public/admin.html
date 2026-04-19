@@ -123,6 +123,24 @@ input:focus, select:focus, textarea:focus { border-color:var(--primary); backgro
 .alert-error   { background:#fee2e2; color:var(--danger); padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:12px; }
 
 #options-wrap { display:none; }
+
+/* ── Modal ── */
+.modal-backdrop {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.45); z-index:1000;
+  align-items:center; justify-content:center;
+}
+.modal-backdrop.open { display:flex; }
+.modal {
+  background:var(--white); border-radius:14px;
+  padding:28px 28px 24px; width:100%; max-width:520px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.18);
+  max-height:90vh; overflow-y:auto;
+}
+.modal h2 { font-size:17px; font-weight:700; margin-bottom:18px; }
+.modal-footer { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+.btn-ghost { background:var(--bg); color:var(--muted); border:1.5px solid var(--border); }
+.btn-ghost:hover { background:var(--border); }
 </style>
 </head>
 <body>
@@ -156,6 +174,42 @@ input:focus, select:focus, textarea:focus { border-color:var(--primary); backgro
     <div id="tab-dashboard"></div>
     <div id="tab-responses" style="display:none"></div>
     <div id="tab-questions" style="display:none"></div>
+  </div>
+</div>
+
+<!-- Edit Response Modal -->
+<div class="modal-backdrop" id="edit-modal">
+  <div class="modal">
+    <h2>✏️ Edit Response</h2>
+    <div id="edit-alert"></div>
+    <input type="hidden" id="edit-id">
+    <div class="form-row">
+      <div><label>Child's Name</label><input type="text" id="edit-name"></div>
+      <div style="max-width:110px"><label>Attending</label><input type="number" id="edit-attending" min="1" max="20"></div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label>Category</label>
+        <select id="edit-category">
+          <option value="Land">Land</option>
+          <option value="Sea">Sea</option>
+          <option value="Beach">Beach</option>
+        </select>
+      </div>
+      <div><label>Budget Min ($)</label><input type="number" id="edit-bmin" min="0" max="300" step="5"></div>
+      <div><label>Budget Max ($)</label><input type="number" id="edit-bmax" min="0" max="300" step="5"></div>
+    </div>
+    <div>
+      <label>Potluck</label>
+      <select id="edit-potluck">
+        <option value="true">Yes</option>
+        <option value="false">No</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeEditModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdit()">💾 Save Changes</button>
+    </div>
   </div>
 </div>
 
@@ -268,8 +322,10 @@ function renderResponses() {
       <td>$${r.budgetMin}–$${r.budgetMax}</td>
       <td><span class="badge ${r.potluck ? 'badge-yes' : 'badge-no'}">${r.potluck ? 'Yes' : 'No'}</span></td>
       <td style="font-size:12px;color:var(--muted)">${new Date(r.submittedAt).toLocaleDateString('en-CA', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</td>
-      <td>
+      <td style="display:flex;gap:5px;flex-wrap:wrap">
         <button class="btn btn-sm" onclick="showDetail('${r._id}')">View</button>
+        <button class="btn btn-sm btn-success" onclick="openEditModal('${r._id}')">✏️ Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteResponse('${r._id}')">🗑 Delete</button>
       </td>
     </tr>`).join('');
 
@@ -425,6 +481,70 @@ async function deleteQuestion(id) {
   allQuestions = allQuestions.filter(q => q._id !== id);
   renderQuestions();
 }
+
+async function deleteResponse(id) {
+  if (!confirm('Permanently delete this survey response? This cannot be undone.')) return;
+  const res = await fetch('/api/admin/responses/' + id, {
+    method: 'DELETE',
+    headers: { 'x-admin-password': adminPwd }
+  });
+  const data = await res.json();
+  if (data.ok) {
+    allResponses = allResponses.filter(r => r._id !== id);
+    renderResponses();
+  }
+}
+
+function openEditModal(id) {
+  const r = allResponses.find(x => x._id === id);
+  if (!r) return;
+  document.getElementById('edit-id').value = r._id;
+  document.getElementById('edit-name').value = r.childName;
+  document.getElementById('edit-attending').value = r.numAttending;
+  document.getElementById('edit-category').value = r.category;
+  document.getElementById('edit-bmin').value = r.budgetMin;
+  document.getElementById('edit-bmax').value = r.budgetMax;
+  document.getElementById('edit-potluck').value = String(r.potluck);
+  document.getElementById('edit-alert').textContent = '';
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('open');
+}
+
+async function saveEdit() {
+  const id = document.getElementById('edit-id').value;
+  const body = {
+    childName:    document.getElementById('edit-name').value.trim(),
+    numAttending: parseInt(document.getElementById('edit-attending').value) || 1,
+    category:     document.getElementById('edit-category').value,
+    budgetMin:    parseInt(document.getElementById('edit-bmin').value) || 0,
+    budgetMax:    parseInt(document.getElementById('edit-bmax').value) || 0,
+    potluck:      document.getElementById('edit-potluck').value === 'true'
+  };
+  if (!body.childName) { showAlert('edit-alert', 'Name is required.', 'error'); return; }
+
+  const res = await fetch('/api/admin/responses/' + id, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPwd },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (data._id) {
+    const idx = allResponses.findIndex(r => r._id === id);
+    if (idx !== -1) allResponses[idx] = data;
+    closeEditModal();
+    renderResponses();
+  } else {
+    showAlert('edit-alert', data.error || 'Save failed.', 'error');
+  }
+}
+
+// Close modal when clicking backdrop
+document.getElementById('edit-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeEditModal();
+});
 
 function showAlert(id, msg, type) {
   const el = document.getElementById(id);

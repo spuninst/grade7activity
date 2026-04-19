@@ -17,7 +17,8 @@ const VENUES = {
     { name: 'Prince of Whales', rating: 4.7, reviews: 890, desc: '4–5 hour whale watching — humpbacks & orcas', tag: 'Granville Island', emoji: '🐋', lat: 49.2717, lng: -123.1342 },
     { name: 'Deep Cove Kayak Centre', rating: 4.8, reviews: 430, desc: 'Guided group sea kayaking in fjord scenery', tag: 'Deep Cove', emoji: '🚣', lat: 49.3258, lng: -122.9483 },
     { name: 'Harbour Cruises', rating: 4.5, reviews: 620, desc: 'Dinner & lunch cruises — formal and celebratory', tag: 'Coal Harbour', emoji: '🛳️', lat: 49.2901, lng: -123.1254 },
-    { name: 'Vancouver Water Adventures', rating: 4.9, reviews: 310, desc: 'City & Seals boat tour — fun and affordable', tag: 'Granville Island', emoji: '⛵', lat: 49.2880, lng: -123.1350 }
+    { name: 'Vancouver Water Adventures', rating: 4.9, reviews: 310, desc: 'City & Seals boat tour — fun and affordable', tag: 'Granville Island', emoji: '⛵', lat: 49.2880, lng: -123.1350 },
+    { name: 'Pirate Boat/Picnic', rating: 4.8, reviews: 180, desc: 'Themed pirate boat experience with group picnic on the water', tag: 'False Creek', emoji: '🏴‍☠️', lat: 49.2726, lng: -123.1269 }
   ],
   Beach: [
     { name: 'Kitsilano Beach Volleyball', rating: 4.7, reviews: 150, desc: 'Free courts all summer — organize a grad tournament!', tag: 'Kitsilano', emoji: '🏐', lat: 49.2742, lng: -123.1553 },

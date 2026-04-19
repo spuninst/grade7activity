@@ -94,7 +94,8 @@ const ACTIVITIES = {
     'Whale Watching Tour (Prince of Whales)',
     'Group Sea Kayaking (Deep Cove)',
     'Harbour Dinner Cruise',
-    'City & Seals Boat Tour'
+    'City & Seals Boat Tour',
+    'Pirate Boat/Picnic'
   ],
   Beach: [
     'Beach Volleyball Tournament (Kits Beach)',
@@ -226,6 +227,27 @@ app.get('/api/admin/summary', adminAuth, async (req, res) => {
     res.json({ total, totalAttendees, catCount, potluckYes, potluckNo: total - potluckYes, foodCount, activityVotes, avgBudgetMin, avgBudgetMax });
   } catch (e) {
     res.status(500).json({ error: e.message });
+  }
+});
+
+app.delete('/api/admin/responses/:id', adminAuth, async (req, res) => {
+  try {
+    await Response.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.patch('/api/admin/responses/:id', adminAuth, async (req, res) => {
+  try {
+    const allowed = ['childName', 'numAttending', 'category', 'budgetMin', 'budgetMax', 'potluck', 'potluckFood', 'potluckOther', 'activityRankings'];
+    const update = {};
+    allowed.forEach(k => { if (req.body[k] !== undefined) update[k] = req.body[k]; });
+    const doc = await Response.findByIdAndUpdate(req.params.id, update, { new: true });
+    res.json(doc);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
   }
 });
 
