@@ -42,6 +42,7 @@ lib-cov/
 .env.production
 .env.production.local
 .env.staging
+.env.example
 *.pem
 *.key
 *.cert
