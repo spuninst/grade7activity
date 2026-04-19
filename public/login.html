@@ -62,6 +62,14 @@ button:hover { background: #1d4ed8; }
   font-size: 13px;
   margin-bottom: 16px;
 }
+.survey-link {
+  display: block;
+  margin-top: 20px;
+  font-size: 13px;
+  color: #2563eb;
+  text-decoration: none;
+}
+.survey-link:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -77,6 +85,7 @@ button:hover { background: #1d4ed8; }
     <input type="password" id="password" name="password" placeholder="Enter password" autofocus required>
     <button type="submit">Sign In →</button>
   </form>
+  <a href="/" class="survey-link">Go to the survey →</a>
 </div>
 <script>
   if (location.search.includes('error=1')) {
