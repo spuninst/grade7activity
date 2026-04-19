@@ -69,7 +69,7 @@ app.get('/logout', (req, res) => {
 
 // ── Protected HTML pages ──────────────────────────────────────────
 app.get('/', requireAuth, (req, res, next) => next());
-app.get('/admin', requireAuth, (req, res) =>
+app.get('/admin', (req, res) =>
   res.sendFile(path.join(__dirname, 'public', 'admin.html'))
 );
 
@@ -118,68 +118,7 @@ const POTLUCK_OPTIONS = [
   'Pizza'
 ];
 
-// ── API auth guard ────────────────────────────────────────────────
-app.use('/api', requireApiAuth);
-
-// ── Survey API ────────────────────────────────────────────────────
-app.get('/api/config', (req, res) => {
-  res.json({ activities: ACTIVITIES, potluckOptions: POTLUCK_OPTIONS });
-});
-
-app.get('/api/questions', async (req, res) => {
-  try {
-    const questions = await Question.find({ active: true }).sort({ order: 1 });
-    res.json(questions);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.post('/api/responses', async (req, res) => {
-  try {
-    const doc = new Response(req.body);
-    await doc.save();
-    res.status(201).json({ ok: true, id: doc._id });
-  } catch (e) {
-    res.status(400).json({ error: e.message });
-  }
-});
-
-// ── Public summary (site-password protected, no admin pwd needed) ─
-app.get('/api/summary', async (req, res) => {
-  try {
-    const all = await Response.find();
-    const total = all.length;
-    const catCount = { Land: 0, Sea: 0, Beach: 0 };
-    const activityVotes = {};
-    let potluckYes = 0;
-    const budgets = [];
-
-    all.forEach(r => {
-      catCount[r.category] = (catCount[r.category] || 0) + 1;
-      if (r.potluck) potluckYes++;
-      budgets.push({ min: r.budgetMin, max: r.budgetMax });
-      r.activityRankings.forEach(a => {
-        if (!activityVotes[a.activity]) activityVotes[a.activity] = 0;
-        activityVotes[a.activity] += (10 - a.rank);
-      });
-    });
-
-    const topActivities = Object.entries(activityVotes)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 6)
-      .map(([name, score]) => ({ name, score }));
-
-    const avgBudgetMin = total ? Math.round(budgets.reduce((s, b) => s + b.min, 0) / total) : 0;
-    const avgBudgetMax = total ? Math.round(budgets.reduce((s, b) => s + b.max, 0) / total) : 0;
-
-    res.json({ total, catCount, potluckYes, potluckNo: total - potluckYes, topActivities, avgBudgetMin, avgBudgetMax });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-// ── Admin API ─────────────────────────────────────────────────────
+// ── Admin API (no site-cookie required — uses own adminAuth) ──────
 function adminAuth(req, res, next) {
   if (req.headers['x-admin-password'] !== process.env.ADMIN_PASSWORD) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -276,6 +215,67 @@ app.delete('/api/admin/questions/:id', adminAuth, async (req, res) => {
     res.json({ ok: true });
   } catch (e) {
     res.status(400).json({ error: e.message });
+  }
+});
+
+// ── API auth guard (survey routes) ───────────────────────────────
+app.use('/api', requireApiAuth);
+
+// ── Survey API ────────────────────────────────────────────────────
+app.get('/api/config', (req, res) => {
+  res.json({ activities: ACTIVITIES, potluckOptions: POTLUCK_OPTIONS });
+});
+
+app.get('/api/questions', async (req, res) => {
+  try {
+    const questions = await Question.find({ active: true }).sort({ order: 1 });
+    res.json(questions);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/responses', async (req, res) => {
+  try {
+    const doc = new Response(req.body);
+    await doc.save();
+    res.status(201).json({ ok: true, id: doc._id });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+// ── Public summary (site-password protected, no admin pwd needed) ─
+app.get('/api/summary', async (req, res) => {
+  try {
+    const all = await Response.find();
+    const total = all.length;
+    const catCount = { Land: 0, Sea: 0, Beach: 0 };
+    const activityVotes = {};
+    let potluckYes = 0;
+    const budgets = [];
+
+    all.forEach(r => {
+      catCount[r.category] = (catCount[r.category] || 0) + 1;
+      if (r.potluck) potluckYes++;
+      budgets.push({ min: r.budgetMin, max: r.budgetMax });
+      r.activityRankings.forEach(a => {
+        if (!activityVotes[a.activity]) activityVotes[a.activity] = 0;
+        activityVotes[a.activity] += (10 - a.rank);
+      });
+    });
+
+    const topActivities = Object.entries(activityVotes)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([name, score]) => ({ name, score }));
+
+    const avgBudgetMin = total ? Math.round(budgets.reduce((s, b) => s + b.min, 0) / total) : 0;
+    const avgBudgetMax = total ? Math.round(budgets.reduce((s, b) => s + b.max, 0) / total) : 0;
+
+    res.json({ total, catCount, potluckYes, potluckNo: total - potluckYes, topActivities, avgBudgetMin, avgBudgetMax });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
