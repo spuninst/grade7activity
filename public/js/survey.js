@@ -352,6 +352,7 @@ function initDragDrop() {
   let dragged = null;
 
   list.querySelectorAll('.rank-item').forEach(item => {
+    // ── Mouse drag ──
     item.addEventListener('dragstart', e => {
       dragged = item;
       setTimeout(() => item.style.opacity = '0.4', 0);
@@ -376,6 +377,39 @@ function initDragDrop() {
       }
     });
     item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+
+    // ── Touch drag ──
+    item.addEventListener('touchstart', e => {
+      dragged = item;
+      item.style.opacity = '0.4';
+    }, { passive: true });
+
+    item.addEventListener('touchmove', e => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      dragged.style.pointerEvents = 'none';
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      dragged.style.pointerEvents = '';
+      const over = target && target.closest('.rank-item');
+      if (over && over !== dragged) {
+        list.querySelectorAll('.rank-item').forEach(i => i.classList.remove('drag-over'));
+        over.classList.add('drag-over');
+        const rect = over.getBoundingClientRect();
+        if (touch.clientY < rect.top + rect.height / 2) {
+          list.insertBefore(dragged, over);
+        } else {
+          list.insertBefore(dragged, over.nextSibling);
+        }
+        updateRankNumbers(list);
+      }
+    }, { passive: false });
+
+    item.addEventListener('touchend', () => {
+      dragged.style.opacity = '1';
+      list.querySelectorAll('.rank-item').forEach(i => i.classList.remove('drag-over'));
+      collectRankings(list);
+      dragged = null;
+    }, { passive: true });
   });
 }
 
